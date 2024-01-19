@@ -1,0 +1,22 @@
+<template>
+    <lightning-card title="商机名称查重" icon-name="standard:drafts">
+        <div if:false={isLoadedUI}>
+            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+        </div>
+        <div style="height: 550px; weight: 500px;">
+            <lightning-datatable
+                key-field="Id"
+                data={opps.data}
+                show-row-number-column
+                columns={columns}
+                min-column-width="80"
+                wrap-text-max-lines="2"
+                default-sort-direction={defaultSortDirection}
+                sorted-direction={sortDirection}
+                sorted-by={sortedBy}
+                onsort={onHandleSort}
+                >
+            </lightning-datatable>
+        </div>
+    </lightning-card>
+</template>
