@@ -21,7 +21,9 @@ global without sharing class Controller_OAMarketingPlanAdd {
                                                         Telephone__c,CommunicationTheme__c,CommunicationDate__c
                                                         ,Node_Personnel__c,Node_Personnel__r.Job_Number__c,Oppty__r.County__c,Technicalexchange__c,Key_Customer_Deputy_First__c,Key_Customer_Deputy_First__r.Job_Number__c
                                                         ,Density__c,Accountdesigner__c,OnwerContactPositionAndName__c,OwnerUnitEmail__c,OwnerUnitName__c,OwnerUnitPhone__c,RoadSurveyCloseTime__c,EndDate__c
-                                                        ,Projectrequirement__c,Requiredcompletiondate__c,Belongbigaccountornot__c,Technicalscheme__c,Prewonornot__c,Group__c,Group__r.Shortname__c,Proprietor_Responsible__c
+                                                        ,Projectrequirement__c,Requiredcompletiondate__c,Belongbigaccountornot__c,Technicalscheme__c,Prewonornot__c
+                                                        ,Oppty__r.Name,Oppty__r.AccountId,toLabel(Oppty__r.Account.TopGroup__c),Oppty__r.Account.Shortname__c //add ###### Mon Jan 22 16:33:31 CST 2024
+                                                        ,Proprietor_Responsible__c
                                                         ,Approval_Comments__c,Oppty__r.Periods__c,OwnerLeaderLevel__c,Fancoordinatecode__c,MaterialType__c,RoadSurveyStartTime__c,Rawwinddatacode__c,FormPhone__c,Projectbelong__c,Objectname__c
                                                         ,ProjectPhase__c,Applicatbelong__c,Oppty__r.Province__c,ProjectInformationReason__c,Windfarmrangecode__c,RoadSurveyType__c,Projectstatus__c
                                                         ,Oppty__c,Oppty__r.Wind_Farm_Project_Name__c,BeginDate__c,RoadSurveySite__c,Turbulent__c,Demandstatement__c,Approvalstatus__c
@@ -95,9 +97,9 @@ global without sharing class Controller_OAMarketingPlanAdd {
             reqBody.fd_is_dakehu = String.isBlank(proScheme.Belongbigaccountornot__c)?'否':proScheme.Belongbigaccountornot__c;//项目是否所属大客户需求类型包括项目技术方案时必填,可用值:是,否,示例值(否)
             reqBody.fd_is_finish_tecplan = String.isBlank(proScheme.Technicalscheme__c)?'':proScheme.Technicalscheme__c;//技术方案是否完成方案类型包括"选址"关键字时必填,可用值:是,否
             reqBody.fd_is_zhongbiao = String.isBlank(proScheme.Prewonornot__c)?'':proScheme.Prewonornot__c;//是否预中标,可用值:是,否,示例值(否)	
-            reqBody.fd_jituan_attribute = proScheme?.Group__c==null?'':proScheme.Group__r.Shortname__c;//客户所属集团,示例值(华能)
-            reqBody.fd_jituan_attribute_text = proScheme?.Group__c==null?'':proScheme.Group__r.Shortname__c;//客户所属集团,示例值(华能)
-            reqBody.fd_jituan_other = '';//客户所属集团,示例值(华能)
+            reqBody.fd_jituan_attribute = String.isBlank(proScheme.Oppty__r.AccountId)?'':proScheme.Oppty__r.Account.TopGroup__c;//客户所属集团,示例值(华能)
+            reqBody.fd_jituan_attribute_text = String.isBlank(proScheme.Oppty__r.AccountId)?'':proScheme.Oppty__r.Account.TopGroup__c;//客户所属集团,示例值(华能)
+            reqBody.fd_jituan_other = String.isBlank(proScheme.Oppty__r.AccountId)?'':proScheme.Oppty__r.Account.Shortname__c;//客户所属集团-其他
             reqBody.fd_leader_business = String.isBlank(proScheme.Proprietor_Responsible__c)?'':proScheme.Proprietor_Responsible__c;//业主方负责人
             reqBody.fd_leader_contact = String.isBlank(proScheme.OwnerLeaderLevel__c)?'':proScheme.OwnerLeaderLevel__c;//业主参与交流领导级别
             reqBody.fd_location_pass = String.isBlank(proScheme.Fancoordinatecode__c)?'':proScheme.Fancoordinatecode__c;//机位点密码
@@ -108,7 +110,7 @@ global without sharing class Controller_OAMarketingPlanAdd {
             reqBody.fd_pass_wind = String.isBlank(proScheme.Rawwinddatacode__c)?'':proScheme.Rawwinddatacode__c;//原始测风数据密码	
             reqBody.fd_phone = String.isBlank(proScheme.FormPhone__c)?'':proScheme.FormPhone__c;//联系方式,示例值(15208146889)
             reqBody.fd_project_belongs = String.isBlank(proScheme.Projectbelong__c)?'':proScheme.Projectbelong__c;//项目所属,可用值:战区,营销部后市场运营管理部,润阳,其他,示例值(战区)
-            reqBody.fd_project_fullname = String.isBlank(proScheme.Objectname__c)?'':proScheme.Objectname__c;//项目全称
+            reqBody.fd_project_fullname = String.isBlank(proScheme.Oppty__r.Name)?'':proScheme.Oppty__r.Name;//项目全称
             reqBody.fd_project_name = String.isBlank(proScheme.Oppty__r.Wind_Farm_Project_Name__c)?'':proScheme.Oppty__r.Wind_Farm_Project_Name__c;//风场项目名（如：锡铁山，若无可不填）
             reqBody.fd_project_phase = String.isBlank(proScheme.ProjectPhase__c)?'':proScheme.ProjectPhase__c;//项目阶段需求类型包括项目提资时必填,可用值:前期项目,投标项目
             reqBody.fd_project_type = String.isBlank(proScheme.Oppty__r.ProjectProductType__c)?'':proScheme.Oppty__r.ProjectProductType__c;//项目类型,可用值:陆上项目,海上项目,示例值(陆上项目)

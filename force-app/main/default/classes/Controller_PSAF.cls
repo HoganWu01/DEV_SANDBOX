@@ -82,7 +82,7 @@ public without sharing class Controller_PSAF {
             Project_Scheme_Application_Form__c psaf = new Project_Scheme_Application_Form__c();
 
             if (opp != null) {
-                psaf.Group__c  = opp.Account.Id;//客户全称
+                // psaf.Group__c  = opp.Account.Id;//客户全称
                 psaf.Province__c  = opp.Province__c;//省份
                 psaf.City__c  = opp.City__c;//城市
                 psaf.District__c  = opp.County__c;//县区
