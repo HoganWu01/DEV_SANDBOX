@@ -31,6 +31,7 @@ global without sharing class Rest_BasicData {
                 toLabel(ProjectDeliveryMarket__c) ProjectDeliveryMarketLabel,
                 ProjectArea__c, 
                 toLabel(ProjectArea__c) ProjectAreaLabel,
+                OrgArea__c,
                 MainChargeEmp__r.Job_Number__c,
                 MinorChargeEmp__r.Job_Number__c, 
                 PreManagerEmp__r.Job_Number__c, 
@@ -56,6 +57,7 @@ global without sharing class Rest_BasicData {
                     bEnt.projectDeliveryMarketLabel = (String)ba.get('ProjectDeliveryMarketLabel');
                     bEnt.projectArea = ba.ProjectArea__c;
                     bEnt.projectAreaLabel = (String)ba.get('ProjectAreaLabel');
+                    bEnt.orgArea = ba.OrgArea__c;
                     bEnt.mainChargeEmp = ba.MainChargeEmp__r.Job_Number__c;
                     bEnt.minorChargeEmp = ba.MinorChargeEmp__r.Job_Number__c;
                     bEnt.preManagerEmp = ba.PreManagerEmp__r.Job_Number__c;
@@ -116,6 +118,7 @@ global without sharing class Rest_BasicData {
         global String projectDeliveryMarketLabel{get;set;} //
         global String projectArea{get;set;} //
         global String projectAreaLabel{get;set;} //
+        global String orgArea{get;set;} //组织区域
         global String mainChargeEmp{get;set;} //
         global String minorChargeEmp{get;set;} //
         global String preManagerEmp{get;set;} //
