@@ -4,6 +4,8 @@ trigger ProjectIssueTrigger on ProjectIssue__c (after insert, after update) {
         new triggers()
         .Bind(Triggers.Evt.AfterInsert,new ProjectIssueNotifyHandler())
         .Bind(Triggers.Evt.AfterUpdate,new ProjectIssueNotifyHandler())
+        .Bind(Triggers.Evt.AfterInsert,new ProjectIssueHandler())
+        .Bind(Triggers.Evt.AfterUpdate,new ProjectIssueHandler())
         .Execute();
     }
 }
