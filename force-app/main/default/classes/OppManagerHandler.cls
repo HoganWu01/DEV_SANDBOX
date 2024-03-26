@@ -85,4 +85,63 @@ global without sharing class OppManagerHandler {
 
         upsert oppList ; 
     }
+
+    /**
+     * @Descripttion: 更新商机总经理 from 基础数据对象
+     * @Author: Hogan
+     * @param {*}
+     * @return {*}
+     */    
+    @InvocableMethod(label='Sync Opp Manager' description='Sync Opportunity ProjectArea And Market Manager From BasicData.' category='')
+    public static void syncOppManager(List<String> oppListIds) {
+
+
+        List<Opportunity> oppList = [SELECT ID,
+                                            ProjectArea__c,   //所属大区/二级公司
+                                            Chiefgeneralmanager__c,   //大区/二级公司总经理
+                                            Pre_Sales_Project_Manager__c, //售前项目经理
+                                            MarketBidDept__c,   //客户分部
+                                            Key_Account_General_Manager__c   //大客户总经理
+                                            FROM Opportunity WHERE ID IN:oppListIds];
+
+        if (oppList[0].ProjectArea__c==null) {
+            return ; 
+        }
+
+        String recTypeId =Schema.SObjectType.BasicData__c.getRecordTypeInfosByDeveloperName().get('RecordType_BasicData_Sales').getRecordTypeId();
+
+        String recTypeId2 =Schema.SObjectType.BasicData__c.getRecordTypeInfosByDeveloperName().get('RecordType_BasicData_Customer').getRecordTypeId();
+
+        List<BasicData__c> tableList = [SELECT Id,
+                                                    MainChargeUser__c,
+                                                    PreManagerUser__c 
+                                                    FROM BasicData__c 
+                                                    WHERE RecordTypeId =:recTypeId  
+                                                    AND ProjectArea__c =:oppList[0].ProjectArea__c];
+
+        List<BasicData__c> tableList2 = [SELECT Id,
+                                                    MainChargeUser__c
+                                                    FROM BasicData__c 
+                                                    WHERE RecordTypeId =:recTypeId2  
+                                                    AND MarketBidDept__c =:oppList[0].MarketBidDept__c];
+
+        if (tableList.size()>0) {
+            if(tableList[0].MainChargeUser__c != null){
+                oppList[0].Chiefgeneralmanager__c = tableList[0].MainChargeUser__c;
+            }
+    
+            if(tableList[0].PreManagerUser__c != null){
+                oppList[0].Pre_Sales_Project_Manager__c = tableList[0].PreManagerUser__c;
+            }
+        }
+
+        
+        if (tableList2.size()>0) {
+            if(tableList2[0].MainChargeUser__c != null){
+                oppList[0].Key_Account_General_Manager__c = tableList2[0].MainChargeUser__c;
+            }
+        }
+
+        upsert oppList ; 
+    }
 }
