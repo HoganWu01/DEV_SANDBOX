@@ -2,12 +2,33 @@
 public with sharing class Test_MarketingCountersign {
     static testMethod void testMarketingCountersign(){
         
+        Opportunity opp  = new Opportunity();
+        opp.name = 'opp';
+        opp.Completiontime__c = Datetime.now().date();
+        opp.Contractstage__c = '初版评审';
+        opp.Startdate__c = Datetime.now().date();
+        opp.Contractsigning__c = Datetime.now().date();
+        opp.ContractDate__c = Datetime.now().date();
+        opp.CloseDate = Datetime.now().date();
+        // opp.StageName ='线索管理';
+        opp.StageName ='Closed Won';
+        opp.Date__c = Datetime.now().date();
+        opp.Approvaltime__c = Datetime.now().date();
+        opp.Approval__c = '是';
+        opp.ProjectSubmission__c='历史项目';
+        insert opp;
+
+        // opp.Is_Manual_Modification__c=true;
+        // opp.StageName ='招投标';
+        // update opp;
+
         Contractmanagement__c cm=new Contractmanagement__c();
         cm.Contractname__c='合同';
         cm.WBS__c='123';
         cm.Approvalstatus__c='10';
         cm.DifferentCountries__c='国内非关联方';
         cm.Process_Id__c='18435ebc58c62421033a9ac41daa346b';
+        cm.ObjectName__c= opp.id;
         insert cm; 
 
         ContractSignProcesss__c contractProcess = new ContractSignProcesss__c();

@@ -32,9 +32,11 @@ global without sharing class Rest_MarketingCountersign {
 
                     contractProcess.Process_Id__c = processId; //OA流程id
                     contractProcess.FlowTheme__c = marCou.processtopic; //流程主题
-                    Employee__c employee = [SELECT Id,Name FROM Employee__c WHERE Job_Number__c =: marCou.fd_project_manager];
+                    List<Employee__c> employeeList = [SELECT Id,Name FROM Employee__c WHERE Job_Number__c =: marCou.fd_project_manager LIMIT 1];
                     Employee__c employee2 = [SELECT Id,Name FROM Employee__c WHERE Job_Number__c =: marCou.fd_business_manager];
-                    contractProcess.ProjectManagerName__c = employee?.Name; //项目经理名称
+                    if(employeeList.size() > 0){
+                        contractProcess.ProjectManagerName__c = employeeList[0]?.Name; //项目经理名称
+                    }
                     contractProcess.ProjectManagerCode__c = marCou.fd_project_manager; //项目经理工号
                     contractProcess.BusinessManagerName__c = employee2?.Name; //商务经理名称
                     contractProcess.BusinessManagerCode__c = marCou.fd_business_manager; //商务经理工号
