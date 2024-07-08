@@ -75,6 +75,29 @@ public with sharing class Test_Opportunity {
         opp2.OwnerId = user1.Id;
         opp2.OpportunityApprovalStatus__c = '线索提报通过';
         insert opp2;
+        
+        Opportunity opp3  = new Opportunity();
+        opp3.Name = 'opp';
+        opp3.ProjectSubmission__c = '正常提报线索';
+        opp3.Projecttype__c = '陆上项目';
+        opp3.AccountId = acc.Id;
+        opp3.Wind_Farm_Project_Name__c = '风场项目名3';
+        opp3.capacity__c = 12;
+        opp3.StageName ='线索管理';
+        opp3.Province__c = '广东';
+        opp3.City__c = '中山';
+        opp3.CloseDate = System.today();
+        opp3.Periods__c = '一';
+        opp3.Close__c = false;
+        opp3.recordTypeId = '0122u0000008UxEAAU';
+        opp3.MarketBidDept__c = 'KA101';
+        opp3.ProjectArea__c = 'SR101';
+        opp3.ProjectDeliveryMarket__c = '01';
+        opp3.OwnerId = user1.Id;
+        opp3.OpportunityApprovalStatus__c = '线索提报通过';
+        opp3.ProjectNumber__c = 'S1-20240019';
+        opp3.Key_Account_General_Manager__c = user1.Id;
+        insert opp3;
     }
 
     /**
@@ -197,7 +220,7 @@ public with sharing class Test_Opportunity {
         insert pro ; 
 
         opp.StageName = '中标/赢单';
-        opp.ProjectArea__c = 'SR102';
+        opp.ProjectArea__c = 'SR101';
         opp.MarketBidDept__c = 'KA102';
 
         User user = new User(Alias = '颜芳', Email='yanfang@testorg.com',EmailEncodingKey='UTF-8', LastName='Test110', LanguageLocaleKey='en_US', LocaleSidKey='en_US', ProfileId = manageprofile.Id,  TimeZoneSidKey='America/Los_Angeles', UserName='yanfang@test110.com');
@@ -252,6 +275,9 @@ public with sharing class Test_Opportunity {
         update opp1;
 
         opp1.StageName = '项目立项';
+        update opp1;
+        
+        opp1.Key_Account_General_Manager__c = user2.Id;
         update opp1;
     }
     

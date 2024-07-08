@@ -14,6 +14,7 @@ public with sharing class Test_RestRptOpportunity {
         acc.Name = '广州风机';
         acc.BeenGroup__c = true;
         acc.Accounttype__c = '已交易客户';
+        acc.TopGroup__c = 'TG101';
         insert acc;
 
         //简档数据

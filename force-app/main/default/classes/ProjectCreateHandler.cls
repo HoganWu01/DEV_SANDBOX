@@ -31,14 +31,19 @@ global without sharing class ProjectCreateHandler implements Triggers.Handler {
 
             for(Contractmanagement__c newContract : (List<Contractmanagement__c>)Trigger.new) {
                 //当前新增的{合同商务}，其商机【项目提报类型】=“历史项目”，且当前{合同商务}是该商机的唯一关联{合同商务}，则不创建SAP项目；
-                if (newContract.ObjectName__r.ProjectSubmission__c == '历史项目') {
+                // System.debug('>>>>>>'+newContract.ObjectName__r.ProjectSubmission__c);
+                Opportunity opp = [select ProjectSubmission__c,Close__c from Opportunity where id =: newContract.ObjectName__c];
+                // System.debug('>>>>>>'+opp.ProjectSubmission__c);
+                if (opp.ProjectSubmission__c == '历史项目') {
                     List<Contractmanagement__c> conTemp = [select id from Contractmanagement__c WHERE ObjectName__c =: newContract.ObjectName__c];
                     if (conTemp.size() == 1) {
                         break;
                     }
                 }
-                //项目编号为空，新建SAP标段项目
-                if (String.isBlank(newContract.WBS__c) || String.isEmpty(newContract.WBS__c)) {
+                //项目编号为空,商机未关闭，非历史项目，新建SAP标段项目
+                if ((String.isBlank(newContract.WBS__c) || String.isEmpty(newContract.WBS__c))
+                &&opp.ProjectSubmission__c!='历史项目'
+                &&opp.Close__c==false) {
                     Controller_SAP4Project.SAP4SectionProjectAdd(newContract.ObjectName__c, newContract.Id);
                 }
             }
@@ -49,9 +54,12 @@ global without sharing class ProjectCreateHandler implements Triggers.Handler {
 
             for(Contractmanagement__c newContract : (List<Contractmanagement__c>)Trigger.new) {
                 Contractmanagement__c oldContract = (Contractmanagement__c)Trigger.oldMap.get(newContract.Id);
-                if(newContract.Objectname2__c != oldContract.Objectname2__c && String.isNotBlank(newContract.WBS__c)){
+                Opportunity opp = [select ProjectSubmission__c from Opportunity where id =: newContract.ObjectName__c];
+                if(newContract.Objectname2__c != oldContract.Objectname2__c 
+                && String.isNotBlank(newContract.WBS__c)
+                && opp.ProjectSubmission__c!='历史项目'){
                     //更新SAP项目名称
-                    Controller_SAP4Project.SAP4ProjectNameUpdate(newContract.Objectname2__c, newContract.WBS__c, newContract.OpportunityName__c);
+                    Controller_SAP4Project.SAP4ProjectNameUpdate(newContract.Objectname2__c, newContract.WBS__c, newContract.OpportunityName__c, newContract.ObjectName__c);
                 }
             }
         }

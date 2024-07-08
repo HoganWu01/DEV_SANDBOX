@@ -26,7 +26,7 @@ public with sharing class ControllerBusinessSubmit {
         Map<Object,Object> map_return = new Map<Object,Object>();
         List<LwcOppNameCheckWeightsController.OppEntity> listOppEnt = LwcOppNameCheckWeightsController.getRelatedOpps(recordId);
         if (listOppEnt.size()>0) {
-            map_return.put('oppNameWeight','★ 此商机存在重复录入的可能性，请联系项目经理进行确认！');
+            map_return.put('oppNameWeight','★ 此商机存在重复录入的可能性，请联系售前项目经理进行确认！');
         }
         return map_return;
     }
@@ -55,7 +55,8 @@ public with sharing class ControllerBusinessSubmit {
                                          Choose__c, //客户侧是否立项-进入当年建设盘子
                                          Approval__c, //     项目是否核准  
                                          Approvaltime__c,  //（预计）核准时间
-                                         Date__c //（预计）建设计划时间
+                                         Date__c, //（预计）建设计划时间
+                                         SolutionManager__c //解决方案经理
                                     FROM 
                                          Opportunity	
                                     WHERE 
@@ -82,11 +83,15 @@ public with sharing class ControllerBusinessSubmit {
             }
         }
 
-        List<OpportunityTeamMember> oppTeamList = [SELECT ID FROM OpportunityTeamMember 
-            WHERE OpportunityId =: recordId and TeamMemberRole = '解决方案经理'];
-            if (oppTeamList.size()==0) {
-                approvalRequired += '★【商机】的【商机团队】必须有：“解决方案经理”。\n\r';
-            }
+        // List<OpportunityTeamMember> oppTeamList = [SELECT ID FROM OpportunityTeamMember 
+        //     WHERE OpportunityId =: recordId and TeamMemberRole = '解决方案经理'];
+        //     if (oppTeamList.size()==0) {
+        //         approvalRequired += '★【商机】的【商机团队】必须有：“解决方案经理”。\n\r';
+        //     }
+
+        if (String.isBlank(opportunity.SolutionManager__c)) {
+            approvalRequired += '★【商机】必须有：“解决方案经理”。\n\r';
+        }
 
         // //业务机会名
         // if(String.isBlank(opportunity.Name)) {
@@ -136,7 +141,7 @@ public with sharing class ControllerBusinessSubmit {
 
         List<LwcOppNameCheckWeightsController.OppEntity> listOppEnt = LwcOppNameCheckWeightsController.getRelatedOpps(recordId);
         if (listOppEnt.size()>0) {
-            map_return.put('oppNameWeight','\n\r★ 此商机存在重复录入的可能性，请联系项目经理进行确认！');
+            map_return.put('oppNameWeight','\n\r★ 此商机存在重复录入的可能性，请联系售前项目经理进行确认！');
         }
 
         map_return.put('approvalRequired',approvalRequired);

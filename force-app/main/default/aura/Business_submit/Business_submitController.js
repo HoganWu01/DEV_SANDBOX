@@ -8,6 +8,7 @@
  */
 ({
     init : function(cmp, event, helper) {
+        cmp.set("v.isLoading",true);
         var recordId = cmp.get("v.recordId");
         var action = cmp.get("c.initApproval");
         var comment = cmp.get("v.comment");
@@ -23,16 +24,22 @@
             console.log('result----'+result);
             if(result !=null && result.approvalRequired != null && result.approvalRequired != '') {
                 cmp.set('v.clueComment',result.approvalRequired);
-                cmp.set('v.isButtonActive',true);
+                // cmp.set('v.isButtonActive',true);
             }
 
             if(result !=null && result.oppNameWeight != null){
                 cmp.set('v.clueComment',result.approvalRequired + result.oppNameWeight);
             }
             
-            if (result !=null && result.approvalStatus == '商机提报审批中' || result.approvalStatus == '商机提报通过') {
-                cmp.set('v.isButtonActive',true);
+            // if (result !=null && result.approvalStatus == '商机提报审批中' || result.approvalStatus == '商机提报通过') {
+            //     // cmp.set('v.isButtonActive',true);
+            // }
+
+            if(result==null||result.approvalRequired==''||result.approvalRequired==null){
+                cmp.set('v.isButtonActive',false);
             }
+
+            cmp.set("v.isLoading",false);
         });
         $A.enqueueAction(action);
     },

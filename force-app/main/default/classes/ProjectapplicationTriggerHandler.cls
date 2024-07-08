@@ -343,6 +343,15 @@ public without sharing class ProjectapplicationTriggerHandler {
 			if (str.length() > 0) {
 				str = str.substring(0, str.length()-1);
 			}
+			Opportunity opp = [SELECT SolutionManager__c,SolutionManager__r.Name FROM Opportunity 
+						WHERE Id =: oppId];
+			if (opp.SolutionManager__c!=null) {
+				if (str.length()>0) {
+					str = str + '，' + opp.SolutionManager__r.Name;
+				}else {
+					str = opp.SolutionManager__r.Name;
+				}
+			}
 			return str;
 		}
     }

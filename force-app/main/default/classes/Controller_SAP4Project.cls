@@ -11,7 +11,9 @@ global without sharing class Controller_SAP4Project {
     @future (callout=true)
     global static Void SAP4ProjectAdd(String recordId){
 
-        Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, Province__c FROM Opportunity Where Id = : recordId] ; 
+        Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, Province__c,
+        toLabel(ProjectCustomerType__c),toLabel(ProjectProductType__c),toLabel(ProjectDeliveryMarket__c)
+        FROM Opportunity Where Id = : recordId] ; 
 
         Interface_Log__c logInfo = new Interface_Log__c();
 
@@ -44,6 +46,9 @@ global without sharing class Controller_SAP4Project {
             reqBody.zpost1 = opp.Name; //商机名称
             reqBody.zpost1_id = opp.Id; //商机ID
             reqBody.zproj = opp.Name; //项目全称
+            reqBody.i_customer = opp.ProjectCustomerType__c;//项目客户类型
+            reqBody.i_prdtype = opp.ProjectProductType__c;//项目产品类型
+            reqBody.i_market = opp.ProjectDeliveryMarket__c;//项目交付市场
 
             OpenPlatformApi__c open = OpenPlatformApi__c.getValues('GetToken');//add by hogan
             String IPURL = open.IP__c + ext.Request_URL__c;
@@ -59,6 +64,8 @@ global without sharing class Controller_SAP4Project {
             r.setBody(JSON.serialize(reqBody));
             HTTPResponse resp = h.send(r);
 
+            Opportunity upOpp = new Opportunity();
+            upOpp.Id = recordId;
             if(resp.getStatusCode() == 200){
                 //创建sap项目成功后同时下达A1节点
                 // Interface_Log__c logInfotest = new Interface_Log__c();
@@ -69,7 +76,7 @@ global without sharing class Controller_SAP4Project {
                 ResponseBody res = (ResponseBody)System.JSON.deserialize(resp.getBody(), ResponseBody.class);
                 if (res.data!=null && res.data.size()>0) {
                     Data rd = res.data[0];
-                    opp.ProjectNumber__c = rd.pspid ;   //项目编号
+                    upOpp.ProjectNumber__c = rd.pspid ;   //项目编号
                     if(!String.isBlank(rd.pspid)){
                         RequestBody3 reqB = new RequestBody3();  
                         reqB.i_posid = rd.pspid + '-0000.A1' ;     //WBS
@@ -103,8 +110,8 @@ global without sharing class Controller_SAP4Project {
             logInfo.RequestBody__c = JSON.serialize(reqBody);
 
             if(resp.getStatusCode() != 200){
-                opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-                update opp;
+                upOpp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
+                update upOpp;
                 logInfo.RespondBody__c = response;
                 insert logInfo;
                 return ;
@@ -119,8 +126,8 @@ global without sharing class Controller_SAP4Project {
                         logInfo.IsSuccess__c = false;
                         logInfo.ErrorMessage__c = '返回数据为空';
                         System.debug('resBody.data===》》'+resBody.data);
-                        opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-                        update opp;
+                        upOpp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
+                        update upOpp;
                         insert logInfo ; 
                         return ; 
                     }
@@ -130,10 +137,10 @@ global without sharing class Controller_SAP4Project {
 
                     Data rd = resBody.data[0];
 
-                    opp.ProjectNumber__c = rd.pspid ;   //项目编号
-                    opp.Is_Sap_Proj_Status__c = '1'; //SAP项目创建状态
+                    upOpp.ProjectNumber__c = rd.pspid ;   //项目编号
+                    upOpp.Is_Sap_Proj_Status__c = '1'; //SAP项目创建状态
 
-                    update opp ; 
+                    update upOpp ; 
                     System.debug('创建SAP项目完成');
 
 
@@ -167,8 +174,8 @@ global without sharing class Controller_SAP4Project {
                     logInfo.IsSuccess__c = false;
                     logInfo.ErrorMessage__c = resBody.message; 
                     
-                    opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-                    update opp ; 
+                    upOpp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
+                    update upOpp ; 
                 }
                 insert logInfo ; 
 
@@ -190,7 +197,9 @@ global without sharing class Controller_SAP4Project {
     @future (callout=true)
     global static Void SAP4SectionProjectAdd(String recordId, String contractId){ //商机ID、合同商务ID
 
-        Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, Province__c FROM Opportunity Where Id = : recordId] ; 
+        Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, Province__c,
+        toLabel(ProjectCustomerType__c),toLabel(ProjectProductType__c),toLabel(ProjectDeliveryMarket__c)
+        FROM Opportunity Where Id = : recordId] ; 
 
         Contractmanagement__c con = [SELECT Id, Name, WBS__c,Is_Sap_Proj_Status__c, Objectname2__c FROM Contractmanagement__c Where Id = : contractId] ; 
 
@@ -225,6 +234,9 @@ global without sharing class Controller_SAP4Project {
             reqBody.zpost1 = opp.Name; //商机名称
             reqBody.zpost1_id = opp.Id; //商机ID
             reqBody.zproj = con.Objectname2__c; //项目全称
+            reqBody.i_customer = opp.ProjectCustomerType__c;//项目客户类型
+            reqBody.i_prdtype = opp.ProjectProductType__c;//项目产品类型
+            reqBody.i_market = opp.ProjectDeliveryMarket__c;//项目交付市场
 
             OpenPlatformApi__c open = OpenPlatformApi__c.getValues('GetToken');//add by hogan
             String IPURL = open.IP__c + ext.Request_URL__c;
@@ -389,7 +401,11 @@ global without sharing class Controller_SAP4Project {
 
     //修改SAP项目名称
     @future (callout=true)
-    global static Void SAP4ProjectNameUpdate(String projectName, String ProjectNumber, String opportunityName){
+    global static Void SAP4ProjectNameUpdate(String projectName, String ProjectNumber, String opportunityName, String oppId){
+
+        if (String.isBlank(ProjectNumber)) {
+            return;
+        }
 
         Interface_Log__c logInfo = new Interface_Log__c();
 
@@ -469,114 +485,79 @@ global without sharing class Controller_SAP4Project {
 
     }
 
-    //修改项目系统状态
-    // @future (callout=true)
-    // global static Void SAP4ProjectStatusUpdate(String recordId){
+    //修改SAP项目客户类型、项目产品类型、项目交付市场
+    @future (callout=true)
+    global static Void SAP4ProjectFieldUpdate(String projectNumber, String oppId){
 
-    //     Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, StageName FROM Opportunity Where Id = : recordId] ; 
+        Opportunity opp = [SELECT Id, Name, ProjectNumber__c,
+        toLabel(ProjectCustomerType__c),toLabel(ProjectProductType__c),toLabel(ProjectDeliveryMarket__c)
+        FROM Opportunity Where Id = : oppId] ; 
 
-    //     Interface_Log__c logInfo = new Interface_Log__c();
+        if (String.isBlank(opp.ProjectNumber__c)) {
+            return;
+        }
 
-    //     RequestBody3 reqBody = new RequestBody3();  
+        Interface_Log__c logInfo = new Interface_Log__c();
 
-    //     External_System_Param__c ext = External_System_Param__c.getValues('sapProjectStatus');
+        RequestBody2 reqBody = new RequestBody2();  
 
-    //     try {
+        External_System_Param__c ext = External_System_Param__c.getValues('sapProjectModify');
 
-    //         logInfo.RequestURL__c = ext.Request_URL__c;
-    //         logInfo.ClassName__c = 'Controller_SAP4ProjectStatusUpdate';
+        try {
 
-    //         if(String.isBlank(opp.ProjectNumber__c)){
-    //             logInfo.IsSuccess__c = false;
-    //             logInfo.ErrorMessage__c = '项目编号为空！！！'; 
-    //             insert logInfo;
-    //             return;
-    //         }
+            logInfo.RequestURL__c = ext.Request_URL__c;
+            logInfo.ClassName__c = 'SAP4ProjectFieldUpdate';
 
-    //         if (opp.StageName == '线索管理') {
-    //             reqBody.i_posid = opp.ProjectNumber__c + '-0000.A1' ;     //WBS
-    //             reqBody.i_status2 = 'REL' ; //设置系统状态
-    //         }else if (opp.StageName == '商机管理') {
-    //             reqBody.i_posid = opp.ProjectNumber__c + '-0000.A1' ;     //WBS
-    //             reqBody.i_status2 = 'REL' ; //设置系统状态
-    //         }else if (opp.StageName == '项目立项') {
-    //             reqBody.i_posid = opp.ProjectNumber__c + '-0000.A2' ;     //WBS
-    //             reqBody.i_status2 = 'REL' ; //设置系统状态
-    //         }else if (opp.StageName == '招投标') {
-    //             reqBody.i_posid = opp.ProjectNumber__c + '-0000.A3' ;     //WBS
-    //             reqBody.i_status2 = 'REL' ; //设置系统状态
-    //         }else if (opp.StageName == '中标/赢单') {
-                
-    //         }else if (opp.StageName == '合同商务') {
-    //             reqBody.i_posid = opp.ProjectNumber__c ;     //WBS
-    //             reqBody.i_status2 = 'REL' ; //设置系统状态
-    //         }else if (opp.StageName == 'Closed Won') {
-                
-    //         }else {
-    //             // return;
-    //         }
+            reqBody.i_pspid = projectNumber ; //项目定义
+            reqBody.i_customer = opp.ProjectCustomerType__c;//项目客户类型
+            reqBody.i_prdtype = opp.ProjectProductType__c;//项目产品类型
+            reqBody.i_market = opp.ProjectDeliveryMarket__c;//项目交付市场
 
-    //         System.debug('JSON.serialize(reqBody)---'+JSON.serialize(reqBody));
+            System.debug('JSON.serialize(reqBody)---'+JSON.serialize(reqBody));
 
-    //         String response = Utils.callOut(JSON.serialize(reqBody),ext.Request_URL__c,'Controller_SAP4ProjectStatusUpdate',ext.Request_Source__c,ext.Request_Method__c,ext.Request_Key__c,ext.Initialization_Vector__c);
+            String response = Utils.callOut(JSON.serialize(reqBody),ext.Request_URL__c,'SAP4ProjectFieldUpdate',ext.Request_Source__c,ext.Request_Method__c,ext.Request_Key__c,ext.Initialization_Vector__c);
         
-    //         System.debug('调用成功，response响应结果--->>>>>'+response);
+            System.debug('调用成功，response响应结果--->>>>>'+response);
 
-    //         logInfo.RequestBody__c = JSON.serialize(reqBody);
+            logInfo.RequestBody__c = JSON.serialize(reqBody);
 
-    //         if(response.substring(0,5) == 'Error'){
-    //             // opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-    //             // update opp;
-    //             logInfo.RespondBody__c = response;
-    //             insert logInfo;
-    //             return ;
-    //         }else{
-    //             ResponseBody resBody = (ResponseBody)System.JSON.deserialize(response, ResponseBody.class);
+            if(response.substring(0,5) == 'Error'){
+                logInfo.RespondBody__c = response;
+                insert logInfo;
+                return ;
+            }else{
+                ResponseBody resBody = (ResponseBody)System.JSON.deserialize(response, ResponseBody.class);
 
-    //             logInfo.RespondBody__c = response;
-    //             if (resBody.code == 200) {
-    //                 System.debug('resBody.data---'+resBody.data);  //返回data
+                logInfo.RespondBody__c = response;
+                if (resBody.code == 200) {
+                    System.debug('resBody.data---'+resBody.data);  //返回data
 
-    //                 if (resBody.data==null || resBody.data.size()==0) {
-    //                     logInfo.IsSuccess__c = false;
-    //                     logInfo.ErrorMessage__c = '返回数据为空';
-    //                     System.debug('resBody.data===》》'+resBody.data);
-    //                     // opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-    //                     // update opp;
-    //                     // insert logInfo ; 
-    //                     return ; 
-    //                 }
+                    if (resBody.data==null || resBody.data.size()==0) {
+                        logInfo.IsSuccess__c = false;
+                        logInfo.ErrorMessage__c = '返回数据为空';
+                        System.debug('resBody.data===》》'+resBody.data);
+                        insert logInfo ; 
+                        return ; 
+                    }
 
-    //                 System.debug('resBody.message========>>>>'+resBody.message);
-    //                 logInfo.IsSuccess__c = true; 
-
-    //                 Data rd = resBody.data[0];
-
-    //                 // opp.ProjectNumber__c = rd.pspid  ;   //项目编号
-    //                 // opp.Is_Sap_Proj_Status__c = '1';//更新SAP项目创建状态
-
-    //                 // update opp ; 
-    //                 System.debug('更新SAP项目状态完成');
-
-    //             }else{
-    //                 logInfo.IsSuccess__c = false;
-    //                 logInfo.ErrorMessage__c = resBody.message; 
-                    
-    //                 // opp.Is_Sap_Proj_Status__c = '2';//更新SAP项目创建状态
-    //                 // update opp ; 
-    //             }
-    //             insert logInfo ; 
+                    System.debug('resBody.message========>>>>'+resBody.message);
+                    logInfo.IsSuccess__c = true; 
+                }else{
+                    logInfo.IsSuccess__c = false;
+                    logInfo.ErrorMessage__c = resBody.message; 
+                }
+                insert logInfo ; 
 
 
-    //         }
+            }
 
-    //     }catch(Exception e){
-    //         System.debug(e.getMessage());
-    //         String msg = '返回错误' +e.getLineNumber() + e.getStackTraceString() + ' ' + e.getMessage(); 
-    //         System.debug('error---msg'+msg);
-    //     }
+        }catch(Exception e){
+            System.debug(e.getMessage());
+            String msg = '返回错误' +e.getLineNumber() + e.getStackTraceString() + ' ' + e.getMessage(); 
+            System.debug('error---msg'+msg);
+        }
 
-    // }
+    }
 
    //修改项目用户状态
    @future (callout=true)
@@ -827,6 +808,79 @@ global without sharing class Controller_SAP4Project {
 
    }
 
+    //修改项目商机状态
+    @future (callout=true)
+    global static Void SAP4ProjectStatusMaintain(String recordId){
+
+        Opportunity opp = [SELECT Id, Name, ProjectNumber__c, Is_Sap_Proj_Status__c, StageName, Close__c FROM Opportunity Where Id = : recordId] ; 
+
+        Interface_Log__c logInfo = new Interface_Log__c();
+
+        RequestBody4 reqBody = new RequestBody4();  
+
+        External_System_Param__c ext = External_System_Param__c.getValues('sapProjectStatusMaintain');
+
+        try {
+            logInfo.RequestURL__c = ext.Request_URL__c;
+            logInfo.ClassName__c = 'Controller_SAP4ProjectStatusMaintain';
+
+            if(String.isBlank(opp.ProjectNumber__c)){
+                logInfo.IsSuccess__c = false;
+                logInfo.ErrorMessage__c = '项目编号为空！！！'; 
+                insert logInfo;
+                return;
+            }
+
+            reqBody.i_pspid = opp.ProjectNumber__c ;     //WBS
+            String type='1';
+            if(!opp.Close__c){
+                type='2';
+            }
+            reqBody.i_type = type ;    //操作标志
+
+            System.debug('JSON.serialize(reqBody)---'+JSON.serialize(reqBody));
+
+            String response = Utils.callOut(JSON.serialize(reqBody),ext.Request_URL__c,'sapProjectStatusMaintain',ext.Request_Source__c,ext.Request_Method__c,ext.Request_Key__c,ext.Initialization_Vector__c);
+        
+            System.debug('调用成功，response响应结果--->>>>>'+response);
+
+            logInfo.RequestBody__c = JSON.serialize(reqBody);
+
+            if(response.substring(0,5) == 'Error'){
+                logInfo.RespondBody__c = response;
+                insert logInfo;
+                return ;
+            }else{
+                ResponseBody resBody = (ResponseBody)System.JSON.deserialize(response, ResponseBody.class);
+
+                logInfo.RespondBody__c = response;
+                if (resBody.code == 200) {
+                    System.debug('resBody.data---'+resBody.data);  //返回data
+
+                    if (resBody.data==null || resBody.data.size()==0) {
+                        logInfo.IsSuccess__c = false;
+                        logInfo.ErrorMessage__c = '返回数据为空';
+                        System.debug('resBody.data===》》'+resBody.data);
+                        return ; 
+                    }
+
+                    System.debug('resBody.message========>>>>'+resBody.message);
+                    logInfo.IsSuccess__c = true; 
+                    System.debug('更新SAP项目商机状态完成');
+
+                }else{
+                    logInfo.IsSuccess__c = false;
+                    logInfo.ErrorMessage__c = resBody.message; 
+                }
+                insert logInfo ; 
+            }
+        }catch(Exception e){
+            System.debug(e.getMessage());
+            String msg = '返回错误' +e.getLineNumber() + e.getStackTraceString() + ' ' + e.getMessage(); 
+            System.debug('error---msg'+msg);
+        }
+    }
+
     public class RequestBody {
         // public Integer pfrom{get;set;} //起始号
         // public String plfaz{get;set;} //项目计划开始日期
@@ -840,6 +894,10 @@ global without sharing class Controller_SAP4Project {
         public String zpost1{get;set;} //商机名称
         public String zpost1_id{get;set;} //商机ID
         public String zproj{get;set;} //项目全称
+        public String i_customer{get;set;} //项目客户类型
+        public String i_prdtype{get;set;} //项目产品类型
+        public String i_market{get;set;} //项目交付市场
+        
     }
 
     public class RequestBody2 {
@@ -847,6 +905,9 @@ global without sharing class Controller_SAP4Project {
         public String i_pspid{get;set;} //项目定义
         public String i_zpost1{get;set;} //商机名称
         public String i_zproj{get;set;} //项目全称
+        public String i_customer{get;set;} //项目客户类型
+        public String i_prdtype{get;set;} //项目产品类型
+        public String i_market{get;set;} //项目交付市场
     }
 
     public class RequestBody3 {
@@ -855,6 +916,11 @@ global without sharing class Controller_SAP4Project {
         public String i_status2{get;set;} //重设系统状态
         // public String i_status3{get;set;} //设置用户状态
         public String i_status4{get;set;} //重设用户状态
+    }
+
+    public class RequestBody4 {
+        public String i_pspid{get;set;} //WBS
+        public String i_type{get;set;} //操作标志(1:代表关闭项目；2代表重启项目)
     }
 
     public class ResponseBody {

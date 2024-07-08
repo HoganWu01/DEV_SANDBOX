@@ -52,4 +52,5 @@ export default class OppNameCheckWeights extends LightningElement {
         this.sortDirection = sortDirection;
         this.sortedBy = sortedBy;
     }
+
 }

@@ -39,7 +39,12 @@ global without sharing class Rest_GetContractName {
                                                 where id in(
                                                     select ObjectName__c
                                                     FROM Contractmanagement__c 
-                                                    WHERE (Approvalstatus__c in ('10','11')) AND Contractname__c!=null
+                                                    WHERE Contractname__c!=null
+                                                    AND (
+                                                        (Approvalstatus__c in ('10','11') AND Process_Id__c = '') //草稿"/“驳回”+会签审批流程id为空
+                                                        OR
+                                                        Approvalstatus__c = '00' //废弃
+                                                    )
                                             )];
         if (oppList.size()!=0) {
             for (Opportunity op : oppList) {
@@ -56,7 +61,13 @@ global without sharing class Rest_GetContractName {
             ObjectName__r.Account.TopGroup__c,
             ObjectName__r.Account.Shortname__c
             FROM Contractmanagement__c 
-            WHERE (Approvalstatus__c in ('10','11')) AND Contractname__c!=null]) {
+            WHERE Contractname__c!=null
+            AND (
+                (Approvalstatus__c in ('10','11') AND Process_Id__c = '') //草稿"/“驳回”+会签审批流程id为空
+                OR
+                Approvalstatus__c = '00' //废弃
+            )
+            ]) {
                 ContractNameEntity contractTemp = new ContractNameEntity();
                 contractTemp.contractId = conApproval.Id;
                 contractTemp.name = conApproval.Contractname__c;

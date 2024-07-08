@@ -10,7 +10,7 @@
    <!-- attributes -->
    <aura:attribute name="comment" type="String"/>
    <aura:attribute name="clueComment" type="String"/>
-   <aura:attribute name="isButtonActive" type="Boolean" default="false" />
+   <aura:attribute name="isButtonActive" type="Boolean" default="true" />
    <!-- handlers-->
    <aura:handler name="init" value="{! this }" action="{! c.init }"/>
     <aura:html tag="style" >

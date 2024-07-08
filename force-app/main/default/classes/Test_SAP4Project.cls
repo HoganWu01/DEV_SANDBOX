@@ -74,6 +74,7 @@ public with sharing class Test_SAP4Project {
         opp.recordTypeId = '0122u0000008UxEAAU';
         opp.MarketBidDept__c = 'KA101';
         opp.ProjectArea__c = 'SR101';
+        opp.ProjectProductType__c = '01';
         opp.ProjectDeliveryMarket__c = '01';
         opp.OwnerId = user1.Id;
         opp.OpportunityApprovalStatus__c = '草稿';
@@ -345,6 +346,7 @@ public with sharing class Test_SAP4Project {
         opp.OpportunityApprovalStatus__c = '线索转化通过';
         opp.StageName = '合同商务';
         opp.Close__c = true;
+        opp.ProjectProductType__c = '02';
         update opp;
 
         System.Test.startTest();

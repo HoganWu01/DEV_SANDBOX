@@ -21,7 +21,7 @@
             max-width: 50% !important;
         }
         .slds-textarea{
-            height: 50px;
+            height: 120px;
         }
 
         .font-textarea{

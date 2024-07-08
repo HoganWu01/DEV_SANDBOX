@@ -26,7 +26,7 @@ global without sharing class ControllerProprietorRequireReview {
                                     Contractwarrantyperiod__c,Configurationcategory__c,Deliveryrequirements__c,
                                     toLabel(Contractmanagement__r.ObjectName__r.ProjectArea__c),toLabel(Contractmanagement__r.ObjectName__r.ProjectProductType__c),
                                     Contractmanagement__r.ObjectName__r.MarketBidDept__c,Contractmanagement__r.ObjectName__c,
-                                    FinishDate__c 
+                                    FinishDate__c,Contractmanagement__r.TaskStatus__c
                                     FROM Requirementsreview__c WHERE id =: recordId];
         
         String recTypeId_basic =Schema.SObjectType.BasicData__c.getRecordTypeInfosByDeveloperName().get('RecordType_BasicData_Customer').getRecordTypeId();
@@ -39,10 +39,19 @@ global without sharing class ControllerProprietorRequireReview {
             return 'BasicDataIsNull';
         }
 
-        //获取客户分部
         Opportunity oppInfo = null;
         if(req.Contractmanagement__r.ObjectName__c != null){
-            oppInfo = [select id, toLabel(MarketBidDept__c) from Opportunity where id =: req.Contractmanagement__r.ObjectName__c];
+            oppInfo = [select id, ProjectArea__c, toLabel(MarketBidDept__c) from Opportunity where id =: req.Contractmanagement__r.ObjectName__c];
+        }
+
+        String recTypeId_basic2 =Schema.SObjectType.BasicData__c.getRecordTypeInfosByDeveloperName().get('RecordType_BasicData_Sales').getRecordTypeId();
+        List<BasicData__c> basicSalesList = [SELECT Id,
+                                                    MainChargeEmp__r.Job_Number__c
+                                                    FROM BasicData__c 
+                                                    WHERE RecordTypeId =:recTypeId_basic2 
+                                                    AND ProjectArea__c =:oppInfo.ProjectArea__c];
+        if(basicSalesList.size()==0){
+            return 'BasicDataIsNull';
         }
 
         List<String> original = new List<String>(); //原合同品牌
@@ -93,7 +102,15 @@ global without sharing class ControllerProprietorRequireReview {
             }
             reqBody.fd_finish_date = req.FinishDate__c;         //决策完成时间
             reqBody.fd_customer_leader = basicCustList[0].MainChargeEmp__r.Job_Number__c==null?'':basicCustList[0].MainChargeEmp__r.Job_Number__c; //客户分部负责人
-
+            reqBody.n50 = basicSalesList[0].MainChargeEmp__r.Job_Number__c==null?'':basicSalesList[0].MainChargeEmp__r.Job_Number__c; //n50
+            reqBody.n34 = basicCustList[0].MainChargeEmp__r.Job_Number__c==null?'':basicCustList[0].MainChargeEmp__r.Job_Number__c; //n34
+            if (String.isNotBlank(req.Contractmanagement__r.TaskStatus__c)) {
+                if (req.Contractmanagement__r.TaskStatus__c=='已完成') {
+                    reqBody.fd_contract_stage = '合同执行（签订后）阶段';
+                }else {
+                    reqBody.fd_contract_stage = '合同谈判阶段';
+                }
+            }
             
             String response = Utils.callOut(JSON.serialize(reqBody),ext.Request_URL__c,'ControllerProprietorRequireReview',ext.Request_Source__c,ext.Request_Method__c,ext.Request_Key__c,ext.Initialization_Vector__c);
             if (response.substring(0,5) == 'Error') {
@@ -196,6 +213,9 @@ global without sharing class ControllerProprietorRequireReview {
         public String fd_customer_segment{get;set;}//客户分部
         public Date fd_finish_date{get;set;}//决策完成时间
         public String fd_customer_leader{get;set;}//客户分部负责人
+        public String n50{get;set;}//大区营销负责人
+        public String n34{get;set;}//战略客户部负责人
+        public String fd_contract_stage{get;set;}//合同所属阶段
     }
 
     public class ResponseBody {

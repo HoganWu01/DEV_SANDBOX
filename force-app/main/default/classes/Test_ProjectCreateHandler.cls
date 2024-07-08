@@ -20,6 +20,7 @@ public with sharing class Test_ProjectCreateHandler {
         opp.capacity__c = 12;
         opp.OwnerId =  user1.Id;
         opp.OpportunityApprovalStatus__c = '线索转化通过';
+        opp.Close__c = false;
         insert opp;
 
         Projectapplication__c pac = new Projectapplication__c();
@@ -30,6 +31,9 @@ public with sharing class Test_ProjectCreateHandler {
         opp.StageName = '招投标';
         update opp;
 
+        opp.StageName = '中标/赢单';
+        update opp;
+
         Contractmanagement__c contract = new Contractmanagement__c();
 
         contract.TaskStatus__c = '进行中';
@@ -38,8 +42,6 @@ public with sharing class Test_ProjectCreateHandler {
 
         insert contract;
 
-        opp.StageName = '中标/赢单';
-        update opp;
 
         Contractmanagement__c contract2 = new Contractmanagement__c();
 

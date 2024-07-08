@@ -20,9 +20,11 @@ global without sharing class Rest_RptOpportunity {
         {
             logInfo.RequestBody__c = rReq.requestBody.toString();
             // System.debug('logInfo.RequestBody__c===>'+logInfo.RequestBody__c);
-            List<Opportunity> oppList = [SELECT Id, OpportunityApprovalStatus__c, Account.Name, CreatedDate, LastModifiedDate, Account.Shortname__c, 
-            Name, StageName, CalibrationDate__c, toLabel(ProjectProductType__c), Province__c, toLabel(ProjectArea__c), capacity__c, CalibResults__c, 
-            toLabel(MarketBidDept__c), ProjectNumber__c, WinCapacity__c, Approval__c, Estimated_Bidding_Time__c, Winningopponent__c, Close__c, CloseType__c, Owner.Name
+            List<Opportunity> oppList = [SELECT Id, OpportunityApprovalStatus__c, AccountId, Account.Name, CreatedDate, LastModifiedDate, Account.Shortname__c, 
+            Name, StageName, CalibrationDate__c, toLabel(ProjectProductType__c), Province__c, ProjectArea__c, toLabel(ProjectArea__c) ProjectAreaLabel, capacity__c, CalibResults__c, 
+            MarketBidDept__c, toLabel(MarketBidDept__c) MarketBidDeptLabel, ProjectNumber__c, WinCapacity__c, Approval__c, Estimated_Bidding_Time__c, Winningopponent__c, Close__c, CloseType__c, Owner.Name,
+            ProjectDeliveryMarket__c, ProjectCustomerType__c,
+            toLabel(Account.TopGroup__c)
                 FROM Opportunity];
 
             if (oppList.size()>0) {
@@ -36,7 +38,9 @@ global without sharing class Rest_RptOpportunity {
                     oEnt.stageName = opp.StageName==null?'':opp.StageName;
                     oEnt.projectType = opp.ProjectProductType__c==null?'':opp.ProjectProductType__c;
                     oEnt.province = opp.Province__c==null?'':opp.Province__c;
+                    oEnt.salesDepartmentLabel = (String)opp.get('ProjectAreaLabel');
                     oEnt.salesDepartment = opp.ProjectArea__c==null?'':opp.ProjectArea__c;
+                    oEnt.marketBidDeptLabel = (String)opp.get('MarketBidDeptLabel');
                     oEnt.marketBidDept = opp.MarketBidDept__c==null?'':opp.MarketBidDept__c;
                     oEnt.capacity = opp.capacity__c;
                     oEnt.calibResults = opp.CalibResults__c==null?'':opp.CalibResults__c;
@@ -51,6 +55,10 @@ global without sharing class Rest_RptOpportunity {
                     oEnt.close = String.valueOf(opp.Close__c) ;
                     oEnt.closeType = opp.CloseType__c ;
                     oEnt.ownerName = opp.Owner.Name ;
+                    oEnt.projectDeliveryMarket = opp.ProjectDeliveryMarket__c ;
+                    oEnt.projectCustomerType = opp.ProjectCustomerType__c ;
+                    oEnt.topGroupLabel = opp.Account.TopGroup__c==null?'':opp.Account.TopGroup__c;
+
                     oppListTemp.add(oEnt);
                 }
 
@@ -102,7 +110,9 @@ global without sharing class Rest_RptOpportunity {
         global String province{get;set;} //省份
         global String approval{get;set;} //项目是否核准
         global Date estimatedBiddingTime{get;set;}//（预计）招标时间
+        global String salesDepartmentLabel{get;set;} //所属大区/二级公司Label
         global String salesDepartment{get;set;} //所属大区/二级公司
+        global String marketBidDeptLabel{get;set;} //客户分部Label
         global String marketBidDept{get;set;} //客户分部
         global Decimal capacity{get;set;} //总容量
         global String calibResults{get;set;} //	定标结果
@@ -114,6 +124,9 @@ global without sharing class Rest_RptOpportunity {
         global String ownerName{get;set;} //商机所有人
         global Datetime createdDate{get;set;} //创建时间
         global Datetime modifiedDate{get;set;} //上次修改时间
+        global String projectDeliveryMarket{get;set;} //项目交付市场
+        global String projectCustomerType{get;set;} //项目客户类型
+        global String topGroupLabel{get;set;} //客户一级集团Label
 	}
 
 }

@@ -79,26 +79,29 @@ public without sharing class OpportunityHandler implements Triggers.Handler{
                 //     Controller_SAP4Project.SAP4ProjectStatusUpdate(newOpp.Id);
                 // }
 
-                if ((newOpp.Name != oldOpp.Name || newOpp.Periods__c != oldOpp.Periods__c || newOpp.AccountId != oldOpp.AccountId || newOpp.Province__c != oldOpp.Province__c || newOpp.City__c != oldOpp.City__c || newOpp.County__c != oldOpp.County__c || newOpp.Wind_Farm_Project_Name__c != oldOpp.Wind_Farm_Project_Name__c || newOpp.capacity__c != oldOpp.capacity__c) 
+                if ((newOpp.Name != oldOpp.Name || newOpp.Periods__c != oldOpp.Periods__c || newOpp.AccountId != oldOpp.AccountId 
+                        || newOpp.Province__c != oldOpp.Province__c || newOpp.City__c != oldOpp.City__c || newOpp.County__c != oldOpp.County__c 
+                        || newOpp.Wind_Farm_Project_Name__c != oldOpp.Wind_Farm_Project_Name__c || newOpp.capacity__c != oldOpp.capacity__c) 
                     && (newOpp.StageName != oldOpp.StageName || newOpp.Close__c != oldOpp.Close__c) 
-                    && String.isNotBlank(newOpp.ProjectNumber__c)) {
+                    && String.isNotBlank(newOpp.ProjectNumber__c)
+                    && newOpp.ProjectSubmission__c!='历史项目') {
                         //更新商机下项目的项目名称
                         updatePrjName(newOpp.Id);
                         Controller_SAP4Project.SAP4ProjectNameUpdateAndUpStatus(newOpp.Id);
                 }else {
-                    //商机名称变更，更新SAP项目名称
-                    if(newOpp.Name != oldOpp.Name){
+                    //商机名称变更，更新SAP项目名称  add:更新客户类型、产品类型、交付市场 by hogan ###### Wed Jul 3 16:47:45 CST 2024
+                    if(newOpp.Name != oldOpp.Name && newOpp.ProjectSubmission__c!='历史项目'){
                         //更新商机下项目的项目名称
                         updatePrjName(newOpp.Id);
                         List<Contractmanagement__c> listContract = [SELECT Objectname2__c,WBS__c FROM Contractmanagement__c WHERE ObjectName__c =: newOpp.Id];
                         if (listContract.size() > 0) {
                             //更新商机下所有合同的sap项目名称和商机名称
                             for(Contractmanagement__c newContract : listContract) {
-                                Controller_SAP4Project.SAP4ProjectNameUpdate(newContract.Objectname2__c, newContract.WBS__c, newOpp.Name);
+                                Controller_SAP4Project.SAP4ProjectNameUpdate(newContract.Objectname2__c, newContract.WBS__c, newOpp.Name, newOpp.Id);
                             }
                         }else {
                             //还未生成主合同，根据商机wbs更新sap项目名称和商机名称
-                            Controller_SAP4Project.SAP4ProjectNameUpdate(newOpp.Name, newOpp.ProjectNumber__c, newOpp.Name);
+                            Controller_SAP4Project.SAP4ProjectNameUpdate(newOpp.Name, newOpp.ProjectNumber__c, newOpp.Name, newOpp.Id);
                         }
                     }
                     //商机阶段变更
@@ -195,6 +198,30 @@ public without sharing class OpportunityHandler implements Triggers.Handler{
             //     Approval.lock(lockOpportunityIdList, false);
             // }
 
+        }
+
+        //更新项目客户类型、项目产品类型、项目交付市场 TO SAP
+        if (Trigger.isAfter && Trigger.isUpdate) {
+            for(Opportunity newOpp : (List<Opportunity>)Trigger.new) {
+                Opportunity oldOpp = (Opportunity)Trigger.oldMap.get(newOpp.Id);
+                if (newOpp.ProjectCustomerType__c != oldOpp.ProjectCustomerType__c 
+                || newOpp.ProjectProductType__c != oldOpp.ProjectProductType__c 
+                || newOpp.ProjectDeliveryMarket__c != oldOpp.ProjectDeliveryMarket__c) {
+
+                    List<Contractmanagement__c> listContract = [SELECT Objectname2__c,WBS__c FROM Contractmanagement__c WHERE ObjectName__c =: newOpp.Id];
+
+                    if (listContract.size() > 0) {
+                        //更新商机下所有合同的sap项目名称和商机名称
+                        for(Contractmanagement__c newContract : listContract) {
+                            Controller_SAP4Project.SAP4ProjectFieldUpdate(newContract.WBS__c, newOpp.Id);
+                        }
+                    }else {
+                        //还未生成主合同
+                        Controller_SAP4Project.SAP4ProjectFieldUpdate(newOpp.ProjectNumber__c, newOpp.Id);
+                    }
+
+                }
+            }
         }
 
         //插入之后
@@ -529,6 +556,8 @@ public without sharing class OpportunityHandler implements Triggers.Handler{
                 //商机重启  解锁
                 unLockOpportunityList.add(opp);
             }
+            //修改SAP项目商机状态
+            Controller_SAP4Project.SAP4ProjectStatusMaintain(opp.Id);
         }
 
         System.debug('lockOpportunityList-----'+lockOpportunityList);
